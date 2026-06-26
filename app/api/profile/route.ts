@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function GET(req: Request) {
@@ -15,7 +15,6 @@ export async function GET(req: Request) {
     const userId = session.user.id;
 
     // Получаем профиль, если нет – создаём
-    // eslint-disable-next-line prefer-const
     let { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -26,7 +25,12 @@ export async function GET(req: Request) {
         // Профиль не найден, создаём
         const { data: newProfile, error: insertError } = await supabase
             .from('profiles')
-            .insert({ id: userId })
+            .insert({
+                id: userId,
+                email: session.user.email,
+                full_name: session.user.name || '',
+                annual_limit: 2400000,
+            })
             .select()
             .single();
         if (insertError) {
@@ -37,5 +41,8 @@ export async function GET(req: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json(profile);
+    return NextResponse.json({
+        ...profile,
+        email: session.user.email,
+    });
 }

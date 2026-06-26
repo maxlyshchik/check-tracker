@@ -26,8 +26,8 @@ export default function LoginPage() {
             }
             toast.success('Вход выполнен');
             router.push('/dashboard');
-        } catch (err) {
-            toast.error('Неизвестная ошибка', err);
+        } catch (error) {
+            toast.error(`Не удалось загрузить данные: ${error.message}`);
         } finally {
             setLoading(false);
         }

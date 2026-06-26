@@ -180,9 +180,17 @@ export default function DashboardPage() {
         <div className="p-4 max-w-4xl mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold">Мой доход</h1>
-                <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
-                    Выйти
-                </button>
+                <div className="flex gap-4">
+                    <button
+                        onClick={() => router.push('/profile')}
+                        className="text-sm text-blue-600 hover:underline"
+                    >
+                        Профиль
+                    </button>
+                    <button onClick={handleLogout} className="text-sm text-red-600 hover:underline">
+                        Выйти
+                    </button>
+                </div>
             </div>
 
             {/* Карточки сумм */}

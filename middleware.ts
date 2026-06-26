@@ -1,26 +1,30 @@
-import { auth } from '@/lib/auth';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export const runtime = 'nodejs'
+const publicRoutes = ['/login', '/register'];
+const protectedRoutes = ['/dashboard', '/profile'];
 
 export async function middleware(request: NextRequest) {
-    const session = await auth.api.getSession({
-        headers: request.headers,
-    });
+    const { pathname } = request.nextUrl;
 
-    // Если пользователь не авторизован и пытается зайти на защищённые страницы
-    const protectedPaths = ['/dashboard', '/settings'];
-    const isProtected = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
+    // Проверяем, является ли маршрут защищённым
+    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+    const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
-    if (!session && isProtected) {
+    if (!isProtectedRoute && !isPublicRoute) {
+        return NextResponse.next();
+    }
+
+    // Проверяем сессию через cookie
+    const sessionToken = request.cookies.get('better-auth.session_token')?.value;
+
+    if (isProtectedRoute && !sessionToken) {
         const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.set('callbackUrl', request.nextUrl.pathname);
+        loginUrl.searchParams.set('redirect', pathname);
         return NextResponse.redirect(loginUrl);
     }
 
-    // Если авторизован, не пускаем на логин/регистрацию
-    if (session && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register')) {
+    if (isPublicRoute && sessionToken && pathname === '/login') {
         return NextResponse.redirect(new URL('/dashboard', request.url));
     }
 
@@ -28,5 +32,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/stats/:path*', '/settings/:path*', '/login', '/register'],
+    matcher: ['/dashboard/:path*', '/profile/:path*', '/login', '/register'],
 };
