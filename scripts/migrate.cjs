@@ -53,13 +53,15 @@ async function migrate() {
         `);
         console.log('✅ Таблица account создана');
         
-        // Создаём таблицу session
+        // Создаём таблицу session (с колонкой token)
         await pool.query(`
             CREATE TABLE "session" (
                 "id" text PRIMARY KEY,
-                "sessionToken" varchar(255) UNIQUE NOT NULL,
+                "token" varchar(255) UNIQUE NOT NULL,
                 "userId" text REFERENCES "user"(id) ON DELETE CASCADE,
                 "expiresAt" timestamp NOT NULL,
+                "ipAddress" varchar(255),
+                "userAgent" text,
                 "createdAt" timestamp DEFAULT NOW(),
                 "updatedAt" timestamp DEFAULT NOW()
             )
